@@ -1,28 +1,35 @@
+import time
 import dill
-import torch
+from torch.utils.data import DataLoader
 from torchtext.datasets import TranslationDataset
-from torchtext.data import Field, BucketIterator
+from torchtext.data import Field
 
+start = time.time()
 SRC = Field(tokenize="spacy", tokenizer_language="en",
             init_token="<sos>", eos_token="<eos>", lower=True)
 
 TGT = Field(tokenize="spacy", tokenizer_language="es",
             init_token="<sos>", eos_token="<eos>", lower=True)
 
+print("Field decl: {}".format(time.time() - start))
+
 print("Preprocessing data...")
 
-train_data, valid_data, test_data = TranslationDataset(
-    "data/en-es/en-es_", ("en_val.txt", "es_val.txt"), (SRC, TGT)).split(split_ratio=[0.7, 0.15, 0.15])
+start = time.time()
+dataset = TranslationDataset(
+    "data/en-es/en-es_", ("en.txt", "es.txt"), (SRC, TGT))
 
+print("Dataset decl: {}".format(time.time() - start))
+
+train_data, valid_data, test_data = dataset.split(
+    split_ratio=[0.7, 0.15, 0.15])
 SRC.build_vocab(train_data, min_freq=2)
 TGT.build_vocab(train_data, min_freq=2)
 
-train_file = open("data/train.pt", "wb")
-test_file = open("data/test.pt", "wb")
-valid_file = open("data/valid.pt", "wb")
+src_field_file = open("data/src_field.pt", "wb")
+tgt_field_file = open("data/tgt_field.pt", "wb")
 
-pickle.dump(train_data, train_file)
-pickle.dump(valid_data, valid_file)
-pickle.dump(test_data, test_file)
+dill.dump(SRC, src_field_file)
+dill.dump(TGT, tgt_field_file)
 
 print("Data generated!")
