@@ -4,11 +4,11 @@ import torch
 import torch.nn as nn
 from torchtext.datasets import TranslationDataset
 from torchtext.data import BucketIterator, Field
-from transformer import Transformer
-from test import eval_model
-from utils import LabelSmoothing, NoamOpt, SimpleLossCompute
-from data_loader import load_data as create_data
-from data_loader import make_iters, rebatch
+from .transformer import Transformer
+from .test import eval_model
+from .utils import LabelSmoothing, NoamOpt, SimpleLossCompute
+from .data_loader import load_data as create_data
+from .data_loader import make_iters, rebatch
 
 
 def load_data(lang_dir, src_ext, tgt_ext, device, batch_size=12):
