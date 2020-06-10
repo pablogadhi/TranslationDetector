@@ -10,10 +10,9 @@ def eval_model(model, iterator, criterion):
             src = batch.src
             tgt = batch.trg
 
-            output = model(src, tgt)
             output = output[1:].view(-1, output.shape[-1])
-
             tgt = tgt[1:].view(-1)
+
             loss = criterion(output, tgt)
             epoch_loss += loss.item()
 
