@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 
 
-class NoamOpt:
+class DynamicOptimizer:
     def __init__(self, model_size, factor, warmup, optimizer):
         self.optimizer = optimizer
         self._step = 0
@@ -26,11 +26,6 @@ class NoamOpt:
         return self.factor * \
             (self.model_size ** (-0.5) *
              min(step ** (-0.5), step * self.warmup ** (-1.5)))
-
-
-def get_std_opt(model):
-    return NoamOpt(model.src_embed[0].d_model, 2, 4000,
-                   torch.optim.Adam(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9))
 
 
 class LabelSmoothing(nn.Module):
@@ -57,7 +52,7 @@ class LabelSmoothing(nn.Module):
         return self.criterion(x, Variable(true_dist, requires_grad=False))
 
 
-class SimpleLossCompute:
+class LossCompute:
     def __init__(self, generator, criterion, opt=None):
         self.generator = generator
         self.criterion = criterion

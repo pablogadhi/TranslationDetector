@@ -1,13 +1,12 @@
 import math
 import spacy
 import torch
+import dill
 import numpy as np
 from torchtext import data, datasets
-from torch.autograd import Variable
 
 spacy_es = spacy.load('es')
 spacy_en = spacy.load('en')
-
 
 global max_src_in_batch, max_tgt_in_batch
 
@@ -20,24 +19,34 @@ def tokenize_en(text):
     return [tok.text for tok in spacy_en.tokenizer(text)]
 
 
-def load_data(lang_dir, src_ext, tgt_ext):
+def load_field(path):
+    file = open(path, "rb")
+    return dill.load(file)
+
+
+def load_data(lang_dir, src_ext, tgt_ext, src_path=None, tgt_path=None):
     BOS_WORD = '<s>'
     EOS_WORD = '</s>'
-    BLANK_WORD = "<pad>"
-    SRC = data.Field(tokenize=tokenize_es, pad_token=BLANK_WORD)
-    TGT = data.Field(tokenize=tokenize_en, init_token=BOS_WORD,
-                     eos_token=EOS_WORD, pad_token=BLANK_WORD)
+    BLANK_WORD = '<pad>'
+    SRC = data.Field(tokenize=tokenize_es, init_token=BOS_WORD, eos_token=EOS_WORD,
+                     pad_token=BLANK_WORD) if src_path is None else load_field(src_path)
+    TGT = data.Field(tokenize=tokenize_en, init_token=BOS_WORD, eos_token=EOS_WORD,
+                     pad_token=BLANK_WORD) if tgt_path is None else load_field(tgt_path)
 
+    print("Loading data...")
     dataset = datasets.TranslationDataset(
         lang_dir, (src_ext, tgt_ext), (SRC, TGT),
         filter_pred=lambda x: len(vars(x)['src']) <= 100 and
         len(vars(x)['trg']) <= 100)
+    print("Data loaded!")
 
     train, valid, test = dataset.split(
         split_ratio=[0.7, 0.15, 0.15])
 
-    SRC.build_vocab(train.src, min_freq=2, max_size=40000)
-    TGT.build_vocab(train.trg, min_freq=2, max_size=40000)
+    if src_path is None:
+        SRC.build_vocab(train.src, min_freq=2, max_size=39996)
+    if tgt_path is None:
+        TGT.build_vocab(train.trg, min_freq=2, max_size=39996)
 
     return SRC, TGT, train, valid, test
 
@@ -95,7 +104,7 @@ class Batch:
         return mask
 
 
-def rebatch(batch, src_pad, tgt_pad, device):
+def make_batch(batch, src_pad, tgt_pad, device):
     return Batch(batch.src, batch.trg, src_pad, tgt_pad, device)
 
 
