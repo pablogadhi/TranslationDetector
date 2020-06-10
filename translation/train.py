@@ -30,8 +30,8 @@ def load_data(lang_dir, src_ext, tgt_ext, device, batch_size=12):
         (train_data, valid_data, test_data),
         batch_size=batch_size, device=device)
 
-    SRC.build_vocab(train_data.src, min_freq=2, max_size=30000)
-    TGT.build_vocab(train_data.trg, min_freq=2, max_size=30000)
+    SRC.build_vocab(train_data.src, min_freq=2, max_size=40000)
+    TGT.build_vocab(train_data.trg, min_freq=2, max_size=40000)
 
     return SRC, TGT, train_iterator, valid_iterator, test_iterator
 
@@ -85,7 +85,7 @@ def train_model(model, train_itr, valid_itr, src, tgt, device, epochs=100, check
         print(
             f'\t Val. Loss: {valid_loss:.3f}')
 
-        if epoch % save_at == 0 and epoch > 0:
+        if epoch % save_at == 0:
             checkpoint = open(checkpoint_f, "wb")
             torch.save(model.state_dict(), checkpoint)
 
