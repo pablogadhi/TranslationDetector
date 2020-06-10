@@ -61,7 +61,7 @@ def run_epoch(model, iterator, compute_loss, log_interval, device):
 
 def train_model(model, train_itr, valid_itr, src_pad, tgt_pad, device, epochs=100, checkpoint_f="data/model_checkpoint.pt", save_at=100):
     criterion = LabelSmoothing(
-        size=len(TGT.vocab), padding_idx=pad_idx, smoothing=0.1).to(device)
+        size=len(TGT.vocab), padding_idx=tgt_pad, smoothing=0.1).to(device)
     optimizer = NoamOpt(model.core.d_model, 1, 2000,
                         torch.optim.Adam(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9))
     compute_loss = SimpleLossCompute(model.generator, criterion, optimizer)
@@ -97,6 +97,5 @@ if __name__ == "__main__":
         train, valid, test, device, batch_size=700)
     model = Transformer(len(SRC.vocab), len(TGT.vocab)).to(device)
 
-    pad_idx = TGT.vocab.stoi['<pad>']
     train_model(model, train_itr, valid_itr,
                 SRC.vocab.stoi['<pad>'], TGT.vocab.stoi['<pad>'], device, 10, save_at=1)
