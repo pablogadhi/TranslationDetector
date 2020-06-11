@@ -10,6 +10,8 @@ numpy = "*"
 spacy = "*"
 dill = "*"
 notebook = "*"
+matplotlib = "*"
+seaborn = "*"
 
 [dev-packages]
 autopep8 = "*"

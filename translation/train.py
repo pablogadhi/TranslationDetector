@@ -10,7 +10,7 @@ def run_epoch(model, iterator, compute_loss, log_interval, device):
     start_time = time.time()
     for i, batch in enumerate(iterator):
         output = model(batch.src, batch.tgt, batch.tgt_mask,
-                       batch.src_pad_mask, batch.tgt_pad_mask)
+                       batch.src_pad_mask, batch.tgt_pad_mask, batch.src_mask)
         loss = compute_loss(output, batch.tgt_y, batch.n_tokens)
 
         total_loss += loss.item()

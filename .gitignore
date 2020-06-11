@@ -136,3 +136,7 @@ data/
 
 # VScode
 .vscode/
+
+# Some test files
+test_copy.py
+plots.ipynb

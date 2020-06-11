@@ -79,12 +79,6 @@ def make_iters(train, valid, test, device, batch_size=12):
     return train_iter, valid_iter, test_iter
 
 
-def subsequent_mask(size):
-    attn_shape = (1, size, size)
-    subsequent_mask = np.triu(np.ones(attn_shape), k=1).astype('uint8')
-    return torch.from_numpy(subsequent_mask) == 0
-
-
 class Batch:
     def __init__(self, src, tgt, src_pad=0, tgt_pad=0, device=None):
         self.src = src
@@ -92,8 +86,12 @@ class Batch:
         self.tgt_y = tgt[1:, :]
         self.src_pad_mask = (src == src_pad).T.to(device)
         self.tgt_pad_mask = (self.tgt == tgt_pad).T.to(device)
+        self.src_mask = self.generate_square_subsequent_mask(
+            len(self.src), len(self.src)).to(device)
         self.tgt_mask = self.generate_square_subsequent_mask(
             len(self.tgt), len(self.tgt)).to(device)
+        self.mem_mask = self.generate_square_subsequent_mask(
+            len(self.src), len(self.tgt)).to(device)
         self.n_tokens = (self.tgt_y != tgt_pad).data.sum()
 
     @staticmethod
@@ -105,7 +103,7 @@ class Batch:
 
 
 def make_batch(batch, src_pad, tgt_pad, device):
-    return Batch(batch.src, batch.trg, src_pad, tgt_pad, device)
+    return Batch(batch.src.transpose(0, 1), batch.trg.transpose(0, 1), src_pad, tgt_pad, device)
 
 
 class TranslationIterator(data.Iterator):

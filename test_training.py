@@ -10,7 +10,7 @@ if __name__ == "__main__":
         "data/en-es/en-es_", "en_test.txt", "es_test.txt", "data/SRC_Field.pt", "data/TGT_Field.pt")
     print("Vocab: ", len(SRC.vocab.stoi))
     train_itr, valid_itr, test_itr = make_iters(
-        train, valid, test, device, batch_size=500)
+        train, valid, test, device, batch_size=600)
     model = Transformer(len(SRC.vocab), len(TGT.vocab)).to(device)
 
     train_model(model, train_itr, valid_itr, SRC, TGT, device, 10, save_at=1)

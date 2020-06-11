@@ -6,21 +6,21 @@ from torch.autograd import Variable
 
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, model_dim, dropout, max_length=5000):
+    def __init__(self, d_model, dropout, max_len=5000):
         super(PositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
 
-        pe = torch.zeros(max_length, model_dim)
-        pos = torch.arange(0, max_length).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, model_dim, 2) *
-                             (-math.log(10000.0) / model_dim))
-        pe[:, 0::2] = torch.sin(pos * div_term)
-        pe[:, 1::2] = torch.cos(pos * div_term)
-        pe = pe.unsqueeze(0).transpose(0, 1)
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) *
+                             -(math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        x = x + self.pe[:x.size(0), :]
+        x = x + self.pe[:, :x.size(1)]
         return self.dropout(x)
 
 
@@ -53,6 +53,15 @@ class Transformer(nn.Module):
             self.core.d_model, tgt_vocab), PositionalEncoding(self.core.d_model, dropout))
         self.generator = Generator(self.core.d_model, tgt_vocab)
 
-    def forward(self, src, tgt, tgt_mask, src_pad_mask, tgt_pad_mask):
+    def forward(self, src, tgt, tgt_mask, src_pad_mask, tgt_pad_mask, src_mask=None, mem_mask=None):
         return self.core(self.src_embeddings(src), self.tgt_embeddings(tgt),
-                         None, tgt_mask, None, src_pad_mask, tgt_pad_mask, None)
+                         src_mask, tgt_mask, mem_mask, src_pad_mask, tgt_pad_mask, None)
+
+    def encode(self, src, src_mask=None, src_pad_mask=None):
+        return self.core.encoder(self.src_embeddings(src), mask=src_mask,
+                                 src_key_padding_mask=src_pad_mask)
+
+    def decode(self, tgt, memory, tgt_mask, tgt_pad_mask, mem_pad_mask=None, mem_mask=None):
+        return self.core.decoder(self.tgt_embeddings(tgt), memory, tgt_mask=tgt_mask, memory_mask=mem_mask,
+                                 tgt_key_padding_mask=tgt_pad_mask,
+                                 memory_key_padding_mask=mem_pad_mask)
