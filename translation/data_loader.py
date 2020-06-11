@@ -103,7 +103,7 @@ class Batch:
 
 
 def make_batch(batch, src_pad, tgt_pad, device):
-    return Batch(batch.src.transpose(0, 1), batch.trg.transpose(0, 1), src_pad, tgt_pad, device)
+    return Batch(batch.src, batch.trg, src_pad, tgt_pad, device)
 
 
 class TranslationIterator(data.Iterator):
