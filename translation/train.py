@@ -1,5 +1,6 @@
 import time
 import torch
+import math
 from .utils import LabelSmoothing, DynamicOptimizer, LossCompute
 from .data_loader import make_batch
 
@@ -10,7 +11,7 @@ def run_epoch(model, iterator, compute_loss, log_interval, device):
     start_time = time.time()
     for i, batch in enumerate(iterator):
         output = model(batch.src, batch.tgt, batch.tgt_mask,
-                       batch.src_pad_mask, batch.tgt_pad_mask, batch.src_mask)
+                       batch.src_pad_mask, batch.tgt_pad_mask)
         loss = compute_loss(output, batch.tgt_y, batch.n_tokens)
 
         total_loss += loss.item()
@@ -21,7 +22,7 @@ def run_epoch(model, iterator, compute_loss, log_interval, device):
             elapsed = time.time() - start_time
             print('Step {:5d} : '
                   '{:5.2f} ms/batch | '
-                  'loss {:5.2f}'.format(i, elapsed * 1000 / log_interval, cur_loss))
+                  'loss {:5.2f} | perplexity {:5.2f}'.format(i, elapsed * 1000 / log_interval, cur_loss, math.exp(cur_loss)))
             start_time = time.time()
 
     return total_loss / float(total_tokens)
